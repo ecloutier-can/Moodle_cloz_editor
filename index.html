@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Quill.js CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0f1115;
@@ -36,7 +39,7 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 20% 20%, rgba(124, 77, 255, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 40%);
         }
@@ -118,6 +121,43 @@
             border-color: var(--accent-primary);
         }
 
+        /* Quill Dark Mode Overrides */
+        .ql-toolbar.ql-snow {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px 8px 0 0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .ql-container.ql-snow {
+            border: 1px solid var(--border-color) !important;
+            border-top: none !important;
+            border-radius: 0 0 8px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        .ql-editor {
+            min-height: 250px;
+        }
+
+        .ql-snow .ql-stroke {
+            stroke: var(--text-dim) !important;
+        }
+
+        .ql-snow .ql-fill {
+            fill: var(--text-dim) !important;
+        }
+
+        .ql-snow .ql-picker {
+            color: var(--text-dim) !important;
+        }
+
+        .ql-snow .ql-picker-options {
+            background-color: var(--bg-color) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
         .btn {
             background: var(--accent-primary);
             color: white;
@@ -191,13 +231,20 @@
             overflow-y: auto;
             position: relative;
             padding: 2rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             animation: modalFadeIn 0.3s ease;
         }
 
         @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .modal-header {
@@ -219,7 +266,8 @@
             margin-bottom: 1.5rem;
         }
 
-        select, input {
+        select,
+        input {
             width: 100%;
             padding: 0.75rem;
             background: rgba(255, 255, 255, 0.05);
@@ -229,7 +277,8 @@
             outline: none;
         }
 
-        select:focus, input:focus {
+        select:focus,
+        input:focus {
             border-color: var(--accent-secondary);
         }
 
@@ -303,6 +352,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -319,7 +369,7 @@
                         <span>+</span> Insérer Cloze
                     </button>
                 </div>
-                <textarea id="mainEditor" placeholder="Entrez votre texte ici... Utilisez le bouton pour insérer des codes Cloze."></textarea>
+                <div id="mainEditor"></div>
             </div>
         </section>
 
@@ -365,7 +415,8 @@
             <div id="answerSection">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label>Réponses</label>
-                    <button class="btn btn-secondary btn-small" onclick="addAnswerRow()" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">+ Réponse</button>
+                    <button class="btn btn-secondary btn-small" onclick="addAnswerRow()"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">+ Réponse</button>
                 </div>
                 <div id="answerList">
                     <!-- Rows injected here -->
@@ -381,11 +432,32 @@
 
     <div id="toast">Code copié !</div>
 
+    <!-- Quill.js JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
     <script>
-        const editor = document.getElementById('mainEditor');
+        // Initialize Quill
+        const editor = new Quill('#mainEditor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['clean']
+                ]
+            }
+        });
+
         const preview = document.getElementById('finalPreview');
         const modal = document.getElementById('modalOverlay');
         const answerList = document.getElementById('answerList');
+
+        // Update preview on text change
+        editor.on('text-change', function () {
+            updatePreview();
+        });
 
         // Initial Answer Row
         let answerCount = 0;
@@ -395,7 +467,7 @@
             const row = document.createElement('div');
             row.className = 'answer-row';
             row.id = `row-${answerCount}`;
-            
+
             const isNumerical = document.getElementById('clozeType').value === 'NUMERICAL';
 
             row.innerHTML = `
@@ -452,7 +524,7 @@
             const weight = document.getElementById('clozeWeight').value || 1;
             const type = document.getElementById('clozeType').value;
             const rows = document.querySelectorAll('.answer-row');
-            
+
             let parts = [];
             rows.forEach(row => {
                 const text = row.querySelector('.ans-text').value;
@@ -461,7 +533,7 @@
                 const tolerance = row.querySelector('.ans-tol').value;
 
                 let part = '';
-                
+
                 // Grade prefix
                 if (grade === 100) {
                     part += '=';
@@ -490,21 +562,18 @@
 
         function insertCloze() {
             const code = generateClozeCode();
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            const text = editor.value;
-            editor.value = text.substring(0, start) + code + text.substring(end);
+            const range = editor.getSelection(true);
+            editor.insertText(range.index, code);
             updatePreview();
             closeClozeModal();
-            editor.focus();
         }
 
         function updatePreview() {
-            preview.innerText = editor.value || "Votre code s'affichera ici en temps réel...";
+            preview.innerText = editor.getText() || "Votre code s'affichera ici en temps réel...";
         }
 
         function copyToClipboard() {
-            const textToCopy = editor.value;
+            const textToCopy = editor.getText();
             if (!textToCopy) return;
 
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -514,15 +583,13 @@
             });
         }
 
-        // Live update
-        editor.addEventListener('input', updatePreview);
-
         // Click outside modal
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 closeClozeModal();
             }
         }
     </script>
 </body>
+
 </html>
