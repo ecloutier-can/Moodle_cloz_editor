@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodle Cloze Editor - Antigravity</title>
+    <meta name="description" content="Éditeur de questions Cloze moderne pour Moodle. Générez du code sans effort.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: rgba(23, 25, 30, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-primary: #7c4dff;
+            --accent-secondary: #00e5ff;
+            --accent-success: #00e676;
+            --accent-error: #ff1744;
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
+            --glass-blur: blur(12px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(124, 77, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 40%);
+        }
+
+        header {
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 17, 21, 0.8);
+            backdrop-filter: var(--glass-blur);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: var(--glass-blur);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(124, 77, 255, 0.3);
+        }
+
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 77, 255, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .preview-card {
+            background: linear-gradient(135deg, rgba(124, 77, 255, 0.1), rgba(0, 229, 255, 0.1));
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .cloze-preview {
+            font-family: 'Courier New', Courier, monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            color: var(--accent-secondary);
+            word-break: break-all;
+            margin-top: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--accent-secondary);
+        }
+
+        .answer-row {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .answer-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .remove-answer {
+            color: var(--accent-error);
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Toast Notification */
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--accent-success);
+            color: #000;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transform: translateY(200%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2000;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+        }
+
+        footer {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        #answerList {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Moodle Cloze Editor</h1>
+    </header>
+
+    <main>
+        <!-- Canvas Section -->
+        <section class="card">
+            <div class="editor-container">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <label>Texte de la Question</label>
+                    <button class="btn" onclick="openClozeModal()">
+                        <span>+</span> Insérer Cloze
+                    </button>
+                </div>
+                <textarea id="mainEditor" placeholder="Entrez votre texte ici... Utilisez le bouton pour insérer des codes Cloze."></textarea>
+            </div>
+        </section>
+
+        <!-- Live Preview Section -->
+        <section class="card preview-card">
+            <label>Aperçu du Code Final</label>
+            <div class="cloze-preview" id="finalPreview">Votre code s'affichera ici en temps réel...</div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button class="btn" style="width: 100%;" onclick="copyToClipboard()">Copier le Code</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        Conçu avec ❤️ par Antigravity
+    </footer>
+
+    <!-- Cloze Config Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Configuration Cloze</h2>
+                <button class="close-modal" onclick="closeClozeModal()">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label>Poids (Points)</label>
+                <input type="number" id="clozeWeight" value="1" min="1">
+            </div>
+
+            <div class="form-group">
+                <label>Type de Question</label>
+                <select id="clozeType" onchange="toggleNumericalOptions()">
+                    <option value="MULTICHOICE">Choix multiple (Dropdown)</option>
+                    <option value="MULTICHOICE_V">Choix multiple (Vertical Radio)</option>
+                    <option value="MULTICHOICE_H">Choix multiple (Horizontal Radio)</option>
+                    <option value="SHORTANSWER">Réponse courte (SA)</option>
+                    <option value="SHORTANSWER_C">Réponse courte (SA - Sensible à la casse)</option>
+                    <option value="NUMERICAL">Numérique (NM)</option>
+                </select>
+            </div>
+
+            <div id="answerSection">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label>Réponses</label>
+                    <button class="btn btn-secondary btn-small" onclick="addAnswerRow()" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">+ Réponse</button>
+                </div>
+                <div id="answerList">
+                    <!-- Rows injected here -->
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeClozeModal()">Annuler</button>
+                <button class="btn" style="flex: 2;" onclick="insertCloze()">Générer et Insérer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Code copié !</div>
+
+    <script>
+        const editor = document.getElementById('mainEditor');
+        const preview = document.getElementById('finalPreview');
+        const modal = document.getElementById('modalOverlay');
+        const answerList = document.getElementById('answerList');
+
+        // Initial Answer Row
+        let answerCount = 0;
+
+        function addAnswerRow(text = '', grade = 100, feedback = '', tolerance = '') {
+            answerCount++;
+            const row = document.createElement('div');
+            row.className = 'answer-row';
+            row.id = `row-${answerCount}`;
+            
+            const isNumerical = document.getElementById('clozeType').value === 'NUMERICAL';
+
+            row.innerHTML = `
+                <div class="answer-row-header">
+                    <span class="tag">Option ${answerCount}</span>
+                    <span class="remove-answer" onclick="removeAnswerRow(${answerCount})">Supprimer</span>
+                </div>
+                <div class="form-group">
+                    <label>Texte de la réponse</label>
+                    <input type="text" class="ans-text" value="${text}" placeholder="Réponse...">
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Note (%)</label>
+                        <input type="number" class="ans-grade" value="${grade}" min="0" max="100">
+                    </div>
+                    <div class="form-group tol-group" style="display: ${isNumerical ? 'block' : 'none'}">
+                        <label>Tolérance</label>
+                        <input type="text" class="ans-tol" value="${tolerance}" placeholder="ex: 0.1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Feedback (Optionnel)</label>
+                    <input type="text" class="ans-feedback" value="${feedback}" placeholder="Message...">
+                </div>
+            `;
+            answerList.appendChild(row);
+        }
+
+        function removeAnswerRow(id) {
+            const row = document.getElementById(`row-${id}`);
+            if (row) row.remove();
+        }
+
+        function toggleNumericalOptions() {
+            const isNumerical = document.getElementById('clozeType').value === 'NUMERICAL';
+            document.querySelectorAll('.tol-group').forEach(el => {
+                el.style.display = isNumerical ? 'block' : 'none';
+            });
+        }
+
+        function openClozeModal() {
+            modal.style.display = 'flex';
+            answerList.innerHTML = '';
+            answerCount = 0;
+            addAnswerRow(); // Start with one correct answer
+        }
+
+        function closeClozeModal() {
+            modal.style.display = 'none';
+        }
+
+        function generateClozeCode() {
+            const weight = document.getElementById('clozeWeight').value || 1;
+            const type = document.getElementById('clozeType').value;
+            const rows = document.querySelectorAll('.answer-row');
+            
+            let parts = [];
+            rows.forEach(row => {
+                const text = row.querySelector('.ans-text').value;
+                const grade = parseInt(row.querySelector('.ans-grade').value);
+                const feedback = row.querySelector('.ans-feedback').value;
+                const tolerance = row.querySelector('.ans-tol').value;
+
+                let part = '';
+                
+                // Grade prefix
+                if (grade === 100) {
+                    part += '=';
+                } else if (grade > 0) {
+                    part += `%${grade}%`;
+                }
+
+                // Answer Text
+                part += text;
+
+                // Tolerance for Numerical
+                if (type === 'NUMERICAL' && tolerance) {
+                    part += `:${tolerance}`;
+                }
+
+                // Feedback
+                if (feedback) {
+                    part += `#${feedback}`;
+                }
+
+                parts.push(part);
+            });
+
+            return `{${weight}:${type}:${parts.join('~')}}`;
+        }
+
+        function insertCloze() {
+            const code = generateClozeCode();
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            editor.value = text.substring(0, start) + code + text.substring(end);
+            updatePreview();
+            closeClozeModal();
+            editor.focus();
+        }
+
+        function updatePreview() {
+            preview.innerText = editor.value || "Votre code s'affichera ici en temps réel...";
+        }
+
+        function copyToClipboard() {
+            const textToCopy = editor.value;
+            if (!textToCopy) return;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        // Live update
+        editor.addEventListener('input', updatePreview);
+
+        // Click outside modal
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeClozeModal();
+            }
+        }
+    </script>
+</body>
+</html>
