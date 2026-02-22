@@ -563,18 +563,25 @@
         function insertCloze() {
             const code = generateClozeCode();
             const range = editor.getSelection(true);
-            editor.insertText(range.index, code);
+
+            // Insert the code.
+            editor.insertText(range.index, code, 'user');
+
+            // Remove any formatting applied automatically at that position to keep Cloze code clean
+            editor.removeFormat(range.index, code.length);
+
             updatePreview();
             closeClozeModal();
         }
 
         function updatePreview() {
-            preview.innerText = editor.getText() || "Votre code s'affichera ici en temps réel...";
+            // Updated to show the innerHTML which is what Moodle needs for formatting
+            preview.innerText = editor.root.innerHTML.trim() || "Votre code s'affichera ici en temps réel...";
         }
 
         function copyToClipboard() {
-            const textToCopy = editor.getText();
-            if (!textToCopy) return;
+            const textToCopy = editor.root.innerHTML.trim();
+            if (!textToCopy || textToCopy === '<p><br></p>') return;
 
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const toast = document.getElementById('toast');
