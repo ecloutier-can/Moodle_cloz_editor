@@ -799,9 +799,12 @@
 
     </script>
 
+    <!-- OGL Library (UMD version for file:// compatibility) -->
+    <script src="https://cdn.jsdelivr.net/npm/ogl@0.0.32/dist/ogl.umd.js"></script>
+
     <!-- OGL Animation Script (Inspired by Quentin Hocde) -->
-    <script type="module">
-        import { Renderer, Geometry, Program, Mesh, Vec2, RenderTarget } from 'https://cdn.jsdelivr.net/npm/ogl@1.0.11/dist/ogl.mjs';
+    <script>
+        const { Renderer, Geometry, Program, Mesh, Vec2, RenderTarget } = ogl;
 
         const flowmapVertex = `
             attribute vec2 uv;
