@@ -827,6 +827,18 @@
             }
         }
 
+        // Force Spline transparency
+        window.onload = function () {
+            const spline = document.getElementById('spline-bg');
+            if (spline && spline.shadowRoot) {
+                const style = document.createElement('style');
+                style.textContent = `
+                    canvas { background: transparent !important; }
+                    .loading { background: transparent !important; }
+                `;
+                spline.shadowRoot.appendChild(style);
+            }
+        };
     </script>
 </body>
 
