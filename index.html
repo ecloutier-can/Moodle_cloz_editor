@@ -8,7 +8,9 @@
     <meta name="description" content="Éditeur de questions Cloze moderne pour Moodle. Générez du code sans effort.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.72/build/spline-viewer.js"></script>
 
     <!-- Quill.js CSS -->
@@ -116,13 +118,24 @@
         }
 
         h1 {
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+            background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 1.5rem;
+            font-size: 2.2rem;
+            filter: drop-shadow(0 0 15px rgba(124, 77, 255, 0.4));
+            animation: shine 5s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
         }
 
         main {
@@ -485,7 +498,7 @@
 
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
         <div style="flex: 1;"></div>
-        <h1 style="flex: 2;">Moodle Cloze Editor</h1>
+        <h1 style="flex: 2;">MOODLE CLOZE EDITOR</h1>
         <div style="flex: 1; text-align: right;">
             <button class="btn guide-btn" onclick="openTutorial()">
                 📖 Guide Utilisation
