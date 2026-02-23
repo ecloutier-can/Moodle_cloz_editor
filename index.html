@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.72/build/spline-viewer.js"></script>
+
     <!-- Quill.js CSS -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
@@ -45,21 +45,7 @@
                 radial-gradient(circle at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 40%);
         }
 
-        #spline-bg {
-            position: fixed;
-            bottom: -50px;
-            right: -50px;
-            width: 600px;
-            height: 600px;
-            z-index: -1;
-            pointer-events: none;
-            background: transparent !important;
-        }
 
-        /* Tentative de cibler le canvas interne via Shadow DOM part */
-        #spline-bg::part(canvas) {
-            background: transparent !important;
-        }
 
         header {
             padding: 2rem 1rem;
@@ -423,8 +409,7 @@
 </head>
 
 <body>
-    <spline-viewer id="spline-bg" url="https://prod.spline.design/z70gsTdxoJ1qnA6l/scene.splinecode"
-        hint="false"></spline-viewer>
+
 
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
         <div style="flex: 1;"></div>
@@ -769,18 +754,7 @@
                 closeTutorial();
             }
         }
-        // Force Spline transparency
-        window.onload = function () {
-            const spline = document.getElementById('spline-bg');
-            if (spline && spline.shadowRoot) {
-                const style = document.createElement('style');
-                style.textContent = `
-                    canvas { background: transparent !important; }
-                    .loading { background: transparent !important; }
-                `;
-                spline.shadowRoot.appendChild(style);
-            }
-        };
+
     </script>
 </body>
 
