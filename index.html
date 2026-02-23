@@ -40,17 +40,20 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            /* Le background est maintenant géré par Spline */
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(124, 77, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 229, 255, 0.05) 0%, transparent 40%);
         }
 
         #spline-bg {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            bottom: -50px;
+            /* Ajusté pour masquer le texte/logo en bas */
+            right: -50px;
+            width: 600px;
+            height: 600px;
             z-index: -1;
-            background-color: var(--bg-color);
+            pointer-events: none;
         }
 
         header {
@@ -414,7 +417,8 @@
 </head>
 
 <body>
-    <spline-viewer id="spline-bg" url="https://prod.spline.design/z70gsTdxoJ1qnA6l/scene.splinecode"></spline-viewer>
+    <spline-viewer id="spline-bg" url="https://prod.spline.design/z70gsTdxoJ1qnA6l/scene.splinecode"
+        hint="false"></spline-viewer>
 
     <header style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
         <div style="flex: 1;"></div>
