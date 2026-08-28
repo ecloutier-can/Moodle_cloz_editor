@@ -1357,43 +1357,70 @@
             closeTableModal();
         }
 
-        // Keydown listener for Enter and Tab inside table cells
+        // Keydown listener for Enter, Tab, Backspace, and Delete inside table cells
         document.getElementById('mainEditor').addEventListener('keydown', function (e) {
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0) return;
+            const node = sel.anchorNode;
+            const cell = node && (node.nodeType === 1 ? node : node.parentElement).closest('td, th');
+            if (!cell) return;
+
             if (e.key === 'Tab') {
-                const sel = window.getSelection();
-                if (sel && sel.rangeCount > 0) {
-                    const node = sel.anchorNode;
-                    const cell = node && (node.nodeType === 1 ? node : node.parentElement).closest('td, th');
-                    if (cell) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const nextCell = e.shiftKey ? 
-                            (cell.previousElementSibling || (cell.parentElement.previousElementSibling ? cell.parentElement.previousElementSibling.lastElementChild : null)) :
-                            (cell.nextElementSibling || (cell.parentElement.nextElementSibling ? cell.parentElement.nextElementSibling.firstElementChild : null));
-                        if (nextCell) {
-                            nextCell.focus();
-                            showTableToolbar(nextCell);
-                        }
-                        return false;
-                    }
+                e.preventDefault();
+                e.stopPropagation();
+                const nextCell = e.shiftKey ? 
+                    (cell.previousElementSibling || (cell.parentElement.previousElementSibling ? cell.parentElement.previousElementSibling.lastElementChild : null)) :
+                    (cell.nextElementSibling || (cell.parentElement.nextElementSibling ? cell.parentElement.nextElementSibling.firstElementChild : null));
+                if (nextCell) {
+                    nextCell.focus();
+                    showTableToolbar(nextCell);
                 }
+                return false;
             }
+
             if (e.key === 'Enter') {
-                const sel = window.getSelection();
-                if (sel && sel.rangeCount > 0) {
-                    const node = sel.anchorNode;
-                    const cell = node && (node.nodeType === 1 ? node : node.parentElement).closest('td, th');
-                    if (cell) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        if (!document.execCommand('insertLineBreak')) {
-                            document.execCommand('insertHTML', false, '<br>');
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (!document.execCommand('insertLineBreak')) {
+                    document.execCommand('insertHTML', false, '<br>');
+                }
+                updatePreview();
+                return false;
+            }
+
+            if (e.key === 'Backspace' || e.key === 'Delete') {
+                // Stop Quill from intercepting and deleting the whole table embed
+                e.stopPropagation();
+
+                const range = sel.getRangeAt(0);
+
+                if (range.collapsed) {
+                    if (e.key === 'Backspace') {
+                        const preCaretRange = range.cloneRange();
+                        preCaretRange.selectNodeContents(cell);
+                        preCaretRange.setEnd(range.startContainer, range.startOffset);
+                        const textBefore = preCaretRange.toString();
+
+                        if (textBefore.length === 0) {
+                            // At start of cell: prevent deleting the table
+                            e.preventDefault();
+                            return false;
                         }
-                        updatePreview();
-                        return false;
+                    } else if (e.key === 'Delete') {
+                        const postCaretRange = range.cloneRange();
+                        postCaretRange.selectNodeContents(cell);
+                        postCaretRange.setStart(range.endContainer, range.endOffset);
+                        const textAfter = postCaretRange.toString();
+
+                        if (textAfter.length === 0) {
+                            // At end of cell: prevent deleting outside elements
+                            e.preventDefault();
+                            return false;
+                        }
                     }
                 }
+                setTimeout(updatePreview, 10);
             }
         }, true);
 
